@@ -33,7 +33,7 @@
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
-package sourcecod;
+package sourcecode;
 
 /**
  * An {@code AtomicMarkableReference} maintains an object reference

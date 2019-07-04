@@ -1,4 +1,4 @@
-package sourcecod;
+package sourcecode;
 
 import sun.misc.Unsafe;
 
@@ -30,7 +30,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     private volatile int value;
 
     /**
-     * 使用给定的初始值实例化AtomicInteger。
+     * 使用指定int的初始值，实例化AtomicInteger。
      */
     public AtomicInteger(int initialValue) {
         value = initialValue;
@@ -57,7 +57,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 设置int值为新值newValue（不保证其他线程立刻看到），
+     * 设置value为新值newValue（不保证其他线程立刻看到），
      * 因为value设置为volatile一般情况下其他线程都可见，这里就是抛弃了volatile特性，
      * 1 清空其他线程中缓存，保证可见性
      * 2 内存屏障保证有序性。
@@ -132,7 +132,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 以原子方式执行IntUnaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
+     * 以原子方式将value执行IntUnaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
      */
     public final int getAndUpdate(IntUnaryOperator updateFunction) {
         int prev, next;
@@ -144,7 +144,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 以原子方式执行IntUnaryOperator函数处理，使用CAS乐观锁+循环，返回新值
+     * 以原子方式将value执行IntUnaryOperator函数处理，使用CAS乐观锁+循环，返回新值
      */
     public final int updateAndGet(IntUnaryOperator updateFunction) {
         int prev, next;
@@ -156,7 +156,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 以原子方式执行IntBinaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
+     * 以原子方式将value执行IntBinaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
      */
     public final int getAndAccumulate(int x,
                                       IntBinaryOperator accumulatorFunction) {
@@ -169,7 +169,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 以原子方式执行IntBinaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
+     * 以原子方式将value执行IntBinaryOperator函数处理，使用CAS乐观锁+循环，返回旧值
      */
     public final int accumulateAndGet(int x,
                                       IntBinaryOperator accumulatorFunction) {
