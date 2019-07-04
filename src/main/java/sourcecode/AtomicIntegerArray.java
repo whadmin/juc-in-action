@@ -49,7 +49,9 @@ public class AtomicIntegerArray implements java.io.Serializable {
     private static final Unsafe unsafe = Unsafe.getUnsafe();
     /** 获取该类型的数组，在对象存储时，存放第一个元素的内存地址 **/
     private static final int base = unsafe.arrayBaseOffset(int[].class);
+    /** 用于计算数组中每个元素的偏移位置 **/
     private static final int shift;
+    /** 操作对象 **/
     private final int[] array;
 
     static {

@@ -5,19 +5,19 @@ import java.util.function.BinaryOperator;
 import sun.misc.Unsafe;
 
 /**
- * 原子Reference实现，所有操作都具有 '原子性" 线程安全
+ * 原子引用类实现，所有操作都具有 '原子性" 线程安全（存在ABA问题）
  */
 public class AtomicReference<V> implements java.io.Serializable {
     private static final long serialVersionUID = -1848883965231344442L;
 
     private static final Unsafe unsafe = Unsafe.getUnsafe();
 
-    /** 获取属性value在内存中偏移位置  **/
+    /** 获取属性value在内存中偏移位置 **/
     private static final long valueOffset;
 
     static {
         try {
-            /** 获取属性value在内存中偏移位置  **/
+            /** 使用unsafe.objectFieldOffset获取属性value在内存中偏移位置  **/
             valueOffset = unsafe.objectFieldOffset
                     (java.util.concurrent.atomic.AtomicReference.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
@@ -26,7 +26,7 @@ public class AtomicReference<V> implements java.io.Serializable {
     private volatile V value;
 
     /**
-     * 使用指定initialValue对象 的初始值，实例化AtomicReference。
+     * 操作对象(类型为引用)，声明为volatile，"可见性"
      */
     public AtomicReference(V initialValue) {
         value = initialValue;
@@ -39,21 +39,21 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * 获取对象
+     * 获取对象引用value
      */
     public final V get() {
         return value;
     }
 
     /**
-     * 设置对象为新值
+     * 设置对象引用为新值newValue
      */
     public final void set(V newValue) {
         value = newValue;
     }
 
     /**
-     * 设置value为新值newValue（不保证其他线程立刻看到），
+     * 设置对象引用value为新值newValue（不保证其他线程立刻看到），
      * 因为value设置为volatile一般情况下其他线程都可见，这里就是抛弃了volatile特性，
      * 1 清空其他线程中缓存，保证可见性
      * 2 内存屏障保证有序性。
@@ -65,21 +65,21 @@ public class AtomicReference<V> implements java.io.Serializable {
     }
 
     /**
-     * 使用CAS设置新值newValue，成功返回true,失败返回false
+     * 使用CAS设置对象引用为新值newValue，成功返回true,失败返回false
      */
     public final boolean compareAndSet(V expect, V update) {
         return unsafe.compareAndSwapObject(this, valueOffset, expect, update);
     }
 
     /**
-     * 使用CAS设置新值newValue，成功返回true,失败返回false
+     * 使用CAS设置对象引用为新值newValue，成功返回true,失败返回false
      */
     public final boolean weakCompareAndSet(V expect, V update) {
         return unsafe.compareAndSwapObject(this, valueOffset, expect, update);
     }
 
     /**
-     * 原子设置为给定值并返回旧值。(内部使用CAS乐观锁+循环)
+     * 原子方式设置对象引用为新值newValue，并返回旧值。(内部使用CAS乐观锁+循环)
      */
     @SuppressWarnings("unchecked")
     public final V getAndSet(V newValue) {

@@ -18,14 +18,14 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     static {
         try {
-            /** 获取属性value在内存中偏移位置  **/
+            /** 使用unsafe.objectFieldOffset获取属性value在内存中偏移位置  **/
             valueOffset = unsafe.objectFieldOffset
                     (java.util.concurrent.atomic.AtomicInteger.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
     }
 
     /**
-     * int值，声明为volatile，"可见性"
+     * 操作对象(类型为Integer)，声明为volatile，"可见性"
      */
     private volatile int value;
 
@@ -69,7 +69,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     }
 
     /**
-     * 原子设置为给定值并返回旧值。(内部使用CAS乐观锁+循环)
+     * 原子方式为给定值并返回旧值。(内部使用CAS乐观锁+循环)
      */
     public final int getAndSet(int newValue) {
         return unsafe.getAndSetInt(this, valueOffset, newValue);
