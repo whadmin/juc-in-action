@@ -16,6 +16,7 @@ public class LockSupportTest {
         long star=System.currentTimeMillis();
         LockSupport.parkNanos(5000000000L);
         System.out.println(System.currentTimeMillis()-star);
+        System.out.println(Thread.interrupted());
     }
 
     @Test

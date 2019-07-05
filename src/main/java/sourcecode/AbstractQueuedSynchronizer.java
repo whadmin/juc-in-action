@@ -270,21 +270,30 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 释放head节点后置节点线程重阻塞中唤醒，
+     *
+     * 同时会检查释放节点的线程是否会获取同步状态，如果获取则在次释放释放节点的下一个节点中的线程从阻塞中唤醒，重复迭代
+     */
     private void doReleaseShared() {
-
+        /** 进入自旋 **/
         for (;;) {
+         /**获取当前head节点赋值给变量h,判断等待队列中是否存在等待节点,不存在进入步骤4直接退出. **/
             Node h = head;
             if (h != null && h != tail) {
                 int ws = h.waitStatus;
+                 /**如果当前节点的状态为-1(存在等待的后置节点),使用CAS设置其为0(使用CAS失败进入自旋重新设置)同时会唤醒head后置节点中线程从阻塞中释放. **/
                 if (ws == Node.SIGNAL) {
                     if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
                     unparkSuccessor(h);
                 }
+                /**判断唤醒线程是否获取同步状态,获取同步状态同步队列head节点引用会发生改变，则释放被释放节点后置节点的线程中阻塞中唤醒竞争同步状态 **/
                 else if (ws == 0 &&
                          !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
                     continue;                // loop on failed CAS
             }
+            /**判断唤醒线程是否获取同步状态,获取同步状态同步队列head节点引用会发生改变，则释放被释放节点后置节点的线程中阻塞中唤醒竞争同步状态 **/
             if (h == head)                   // loop if head changed
                 break;
         }
@@ -449,7 +458,7 @@ public abstract class AbstractQueuedSynchronizer
                     return;
                 }
                 /** 2.2 获取锁失败，线程阻塞（可响应线程被中断）,  如果是中断响应设置interrupted = true;
-                 * 抛出异常，中断导致退出自旋线程不在等待！！响应了中断**/
+                 * 抛出异常，中断导致退出自旋线程不在等待！！**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
                     throw new InterruptedException();
@@ -468,21 +477,33 @@ public abstract class AbstractQueuedSynchronizer
             throws InterruptedException {
         if (nanosTimeout <= 0L)
             return false;
+        /** 计算超时绝对时间ns **/
         final long deadline = System.nanoTime() + nanosTimeout;
+        /** addWaiter创建一个独占式节点node,添加到同步队列尾部.**/
         final Node node = addWaiter(Node.EXCLUSIVE);
+        /** 执行是否发生异常 **/
         boolean failed = true;
         try {
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
+                /** 如果当前节点的先驱节点是头结点并且成功获取同步状态 **/
                 if (p == head && tryAcquire(arg)) {
+                    /** 并将当前节点设置为head节点  **/
                     setHead(node);
                     p.next = null; // help GC
                     failed = false;
                     return true;
                 }
+                /** 计算有无超时，如超时则退出 ！！！**/
                 nanosTimeout = deadline - System.nanoTime();
                 if (nanosTimeout <= 0L)
                     return false;
+                /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                 * 如果是中断响应设置interrupted = true;
+                 * 抛出异常，中断导致退出自旋线程不在等待！！
+                 * 如果阻塞超时被唤醒，进入自旋并判断超时后退出自旋
+                 * **/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     nanosTimeout > spinForTimeoutThreshold)
                     LockSupport.parkNanos(this, nanosTimeout);
@@ -490,12 +511,18 @@ public abstract class AbstractQueuedSynchronizer
                     throw new InterruptedException();
             }
         } finally {
+            /** 发生异常，将当前节点等待状态设置为取消**/
             if (failed)
                 cancelAcquire(node);
         }
     }
 
 
+    /**
+     * 创建一个共享式节点node,添加到同步队列尾部.
+     * 进入自旋,找到CLH头部后置第一个节点，尝试获取同步状态,成功则设置其为新head节点，
+     * 并通知后置节点线程从阻塞中唤醒竞争同步状态.失败则阻塞.
+     */
     private void doAcquireShared(int arg) {
         /** 创建一个共享式节点node,添加到同步队列尾部..**/
         final Node node = addWaiter(Node.SHARED);
@@ -524,7 +551,7 @@ public abstract class AbstractQueuedSynchronizer
                         return;
                     }
                 }
-                /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                /**获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断,有超时阻塞）,
                  * 如果是中断响应设置interrupted = true;
                  * 重新进入自旋**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
@@ -539,55 +566,84 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 功能同doAcquireShared，可响应中断
+     */
     private void doAcquireSharedInterruptibly(int arg)
         throws InterruptedException {
+        /** 创建一个共享式节点node,添加到同步队列尾部..**/
         final Node node = addWaiter(Node.SHARED);
+        /** 执行是否发生异常 **/
         boolean failed = true;
         try {
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
                 if (p == head) {
+                    /** 如果当前节点的先驱节点是头结点并且成功获取同步状态 **/
                     int r = tryAcquireShared(arg);
                     if (r >= 0) {
+                        /** 将当前节点设置为head,同时只要同步队列中存在等待的节点,
+                         * 且节点为共享节点则唤醒head节点后置节点阻塞去竞争同步状态. **/
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
                         failed = false;
                         return;
                     }
                 }
+                /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                 * 如果是中断响应设置interrupted = true;
+                 * 抛出异常，中断导致退出自旋线程不在等待！！
+                 * **/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
                     throw new InterruptedException();
             }
         } finally {
+            /** 发生异常，将当前节点等待状态设置为取消**/
             if (failed)
                 cancelAcquire(node);
         }
     }
 
-
+    /**
+     * 功能同doAcquireSharedInterruptibly，添加超时等待
+     */
     private boolean doAcquireSharedNanos(int arg, long nanosTimeout)
             throws InterruptedException {
+        /** 超时时间小于0 直接返回 **/
         if (nanosTimeout <= 0L)
             return false;
+        /** 计算超时绝对时间ns **/
         final long deadline = System.nanoTime() + nanosTimeout;
+        /** 创建一个共享式节点node,添加到同步队列尾部..**/
         final Node node = addWaiter(Node.SHARED);
         boolean failed = true;
         try {
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
+                /** 如果当前节点的先驱节点是头结点并且成功获取同步状态 **/
                 if (p == head) {
                     int r = tryAcquireShared(arg);
                     if (r >= 0) {
+                        /** 将当前节点设置为head,同时只要同步队列中存在等待的节点,
+                         * 且节点为共享节点则唤醒head节点后置节点阻塞去竞争同步状态. **/
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
                         failed = false;
                         return true;
                     }
                 }
+                /** 计算有无超时，如超时则退出 ！！！**/
                 nanosTimeout = deadline - System.nanoTime();
                 if (nanosTimeout <= 0L)
                     return false;
+                /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                 * 如果是中断响应设置interrupted = true;
+                 * 抛出异常，中断导致退出自旋线程不在等待！！
+                 * 如果阻塞超时被唤醒，进入自旋并判断超时后退出自旋
+                 * **/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     nanosTimeout > spinForTimeoutThreshold)
                     LockSupport.parkNanos(this, nanosTimeout);
@@ -595,6 +651,7 @@ public abstract class AbstractQueuedSynchronizer
                     throw new InterruptedException();
             }
         } finally {
+            /** 发生异常，将当前节点等待状态设置为取消**/
             if (failed)
                 cancelAcquire(node);
         }
@@ -605,7 +662,6 @@ public abstract class AbstractQueuedSynchronizer
     protected boolean tryAcquire(int arg) {
         throw new UnsupportedOperationException();
     }
-
 
     /** 模板方法，尝试独占式释放同步状态，返回值为true则表示获取成功，否则获取失败。 **/
     protected boolean tryRelease(int arg) {
@@ -631,7 +687,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * 独占式获取同步状态,如果当前线程获取同步状态成功则直接返回，
      * 如果获取失败则线程阻塞，并插入同步队列进行.等待调用release
-     * 释放同步状态时，重新尝试获取同步状态。
+     * 释放同步状态时，重新尝试获取同步状态。成功则返回，失败则阻塞等待下次release
      */
     public final void acquire(int arg) {
         /**
@@ -713,7 +769,8 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * 共享式获取同步状态,如果当前线程获取同步状态成功则直接返回，
      * 如果获取失败则线程阻塞，并插入同步队列进行.等待调用releaseShared
-     * 释放同步状态时，重新尝试获取同步状态。
+     * 释放同步状态时，重新尝试获取同步状态。成功则，同时会通知后置节点线程从阻塞中唤醒，
+     * 获取同步状态并返回，失败则阻塞等待下次release
      */
     public final void acquireShared(int arg) {
         /**
@@ -734,6 +791,11 @@ public abstract class AbstractQueuedSynchronizer
         if (Thread.interrupted())
         /** 抛出异常 **/
             throw new InterruptedException();
+        /**
+         *子类实现tryAcquireShared能否获取的共享式同步状态
+         *如果返回>=0则获取同步状态成功方法直接返回
+         *如果返回< 0则获取同步状态失败进入if语句
+         */
         if (tryAcquireShared(arg) < 0)
             doAcquireSharedInterruptibly(arg);
     }
@@ -752,8 +814,19 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
-
+    /**
+     * 释放共享式同步入口函数，
+     * 参数arg传递给模板方法用来判断释放同步状态
+     *
+     * 释放同步状态会释放Head节点后置节点中线程从阻塞状态中唤醒。
+     * 同时会检查释放节点的线程是否会获取同步状态，如果获取则在次释放释放节点的下一个节点中的线程从阻塞中唤醒，重复迭代
+     */
     public final boolean releaseShared(int arg) {
+        /**
+         *子类实现能否释放的共享式同步状态
+         *如果返回true则表示释放同步状态准入条件成功进入if语句
+         *如果返回false则表示释放同步状态失败返回false
+         */
         if (tryReleaseShared(arg)) {
             doReleaseShared();
             return true;
@@ -761,18 +834,26 @@ public abstract class AbstractQueuedSynchronizer
         return false;
     }
 
-    // Queue inspection methods
 
+    /**
+     * 在同步队列中是否存在等待线程
+     */
     public final boolean hasQueuedThreads() {
         return head != tail;
     }
 
 
+    /**
+     * 同步队列head节点是否存在
+     */
     public final boolean hasContended() {
         return head != null;
     }
 
 
+    /**
+     * 获取同步队列中第一个等待的线程
+     */
     public final Thread getFirstQueuedThread() {
         // handle only fast path, else relay
         return (head == tail) ? null : fullGetFirstQueuedThread();
@@ -816,6 +897,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 传入的线程是否在同步队列等待
+     */
     public final boolean isQueued(Thread thread) {
         if (thread == null)
             throw new NullPointerException();
@@ -826,6 +910,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 同步队列的哥等待的节点是独占的
+     */
     final boolean apparentlyFirstQueuedIsExclusive() {
         Node h, s;
         return (h = head) != null &&
@@ -833,6 +920,7 @@ public abstract class AbstractQueuedSynchronizer
             !s.isShared()         &&
             s.thread != null;
     }
+
 
 
     public final boolean hasQueuedPredecessors() {
