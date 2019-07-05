@@ -922,7 +922,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
-
+    /**
+     * 当前线程的节点是否为head节点后置节点
+     */
     public final boolean hasQueuedPredecessors() {
         // The correctness of this depends on head being initialized
         // before tail and on head.next being accurate if the current
@@ -935,8 +937,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
-    // Instrumentation and monitoring methods
 
+    /**
+     * 获取同步队列的长度
+     */
     public final int getQueueLength() {
         int n = 0;
         for (Node p = tail; p != null; p = p.prev) {
@@ -947,6 +951,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 获取同步队列中等待的线程
+     */
     public final Collection<Thread> getQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -957,7 +964,9 @@ public abstract class AbstractQueuedSynchronizer
         return list;
     }
 
-
+    /**
+     * 获取同步队列中等待节点为独占的线程
+     */
     public final Collection<Thread> getExclusiveQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -970,7 +979,9 @@ public abstract class AbstractQueuedSynchronizer
         return list;
     }
 
-
+    /**
+     * 获取同步队列中等待节点为共享的线程
+     */
     public final Collection<Thread> getSharedQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -998,21 +1009,11 @@ public abstract class AbstractQueuedSynchronizer
             return false;
         if (node.next != null) // If has successor, it must be on queue
             return true;
-        /*
-         * node.prev can be non-null, but not yet on queue because
-         * the CAS to place it on queue can fail. So we have to
-         * traverse from tail to make sure it actually made it.  It
-         * will always be near the tail in calls to this method, and
-         * unless the CAS failed (which is unlikely), it will be
-         * there, so we hardly ever traverse much.
-         */
         return findNodeFromTail(node);
     }
 
     /**
-     * Returns true if node is on sync queue by searching backwards from tail.
-     * Called only when needed by isOnSyncQueue.
-     * @return true if present
+     *
      */
     private boolean findNodeFromTail(Node node) {
         Node t = tail;
@@ -1026,11 +1027,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Transfers a node from a condition queue onto sync queue.
-     * Returns true if successful.
-     * @param node the node
-     * @return true if successfully transferred (else the node was
-     * cancelled before signal)
+     *
      */
     final boolean transferForSignal(Node node) {
         /*
@@ -1053,11 +1050,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Transfers node, if necessary, to sync queue after a cancelled wait.
-     * Returns true if thread was cancelled before being signalled.
-     *
-     * @param node the node
-     * @return true if cancelled before the node was signalled
+     * 将传入节点的等待状态从Node.CONDITION设置0，加入同步队列
      */
     final boolean transferAfterCancelledWait(Node node) {
         if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
@@ -1076,10 +1069,8 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Invokes release with current state value; returns saved state.
-     * Cancels node and throws exception on failure.
-     * @param node the condition node for this wait
-     * @return previous sync state
+     * 释放同步状态，并返回释放前的同步状态值。
+     * 如果失败将传入的节点等待状态设置为取消
      */
     final int fullyRelease(Node node) {
         boolean failed = true;
