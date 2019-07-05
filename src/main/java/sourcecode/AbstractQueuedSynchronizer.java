@@ -182,8 +182,8 @@ public abstract class AbstractQueuedSynchronizer
 
 
     /**
-     * 如果CLH队列未初始化，则初始化
-     * 将新节点添加到CLH队尾
+     * 如果同步队列未初始化，则初始化
+     * 将新节点添加到同步队尾
      */
     private Node enq(final Node node) {
         for (;;) {
@@ -193,7 +193,7 @@ public abstract class AbstractQueuedSynchronizer
                 if (compareAndSetHead(new Node()))
                     tail = head;
             } else {
-                /**node节点插入clh队列尾，CAS+循环操作失败重新操作直到成功 **/
+                /**node节点插入同步队列尾，CAS+循环操作失败重新操作直到成功 **/
                 node.prev = t;
                 if (compareAndSetTail(t, node)) {
                     t.next = node;
@@ -207,14 +207,14 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * 创建节点node
      * 如果同步队列已初始化则将当前节点添加到同步队列尾部,
-     * 如果同步队列没有初始化则需要调用子函数enq，enq会创建一个CLH同步队列并将当前节点添加到CLH同步队列尾部.
+     * 如果同步队列没有初始化则需要调用子函数enq，enq会创建一个同步队列并将当前节点添加到同步队列尾部.
      */
     private Node addWaiter(Node mode) {
         /**  1. 将当前线程构建成Node **/
         Node node = new Node(Thread.currentThread(), mode);
         /** 2. 将尾节点设置给一个中间引用变量pred **/
         Node pred = tail;
-        /**  3. 判断尾节点是否为null,如果为null说明CLH同步队列未初始化 **/
+        /**  3. 判断尾节点是否为null,如果为null说明同步队列未初始化 **/
         if (pred != null) {
             /**   将当前节点插入同步队列尾部 **/
             /**   将当前节点前置节点为pred  **/
@@ -225,7 +225,7 @@ public abstract class AbstractQueuedSynchronizer
                 return node;
             }
         }
-        /** CLH同步队列未初始化 **/
+        /** 同步队列未初始化 **/
         enq(node);
         return node;
     }
@@ -243,7 +243,7 @@ public abstract class AbstractQueuedSynchronizer
 
 
     /**
-     * 更新CLH同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
+     * 更新同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
      */
     private void unparkSuccessor(Node node) {
         /**
@@ -292,7 +292,7 @@ public abstract class AbstractQueuedSynchronizer
 
 
     /**
-     * 将当前节点设置为head,同时只要CLH队列中存在等待的节点,且节点为共享节点则会调用doReleaseShared,唤醒head节点后置节点阻塞去竞争同步状态.
+     * 将当前节点设置为head,同时只要队列中存在等待的节点,且节点为共享节点则会调用doReleaseShared,唤醒head节点后置节点阻塞去竞争同步状态.
      */
     private void setHeadAndPropagate(Node node, int propagate) {
         Node h = head; // Record old head for check below
@@ -307,6 +307,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 将当前节点等待状态设置未取消
+     */
     private void cancelAcquire(Node node) {
         if (node == null)
             return;
@@ -387,7 +390,7 @@ public abstract class AbstractQueuedSynchronizer
 
 
     /**
-     * 自旋,找到CLH头部后置第一个节点，尝试获取同步状态,成功则设置其为新head节点.失败则阻塞.
+     * 自旋,找到头部后置第一个节点，尝试获取同步状态,成功则设置其为新head节点.失败则阻塞.
      */
     final boolean acquireQueued(final Node node, int arg) {
         /** 执行是否发生异常 **/
@@ -408,7 +411,8 @@ public abstract class AbstractQueuedSynchronizer
                     failed = false;
                     return interrupted;
                 }
-                 /** 2.2 获取锁失败，线程阻塞（可响应线程被中断）,  如果是中断响应设置interrupted = true;
+                 /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                  * 如果是中断响应设置interrupted = true;
                   * 重新进入自旋**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                         parkAndCheckInterrupt())
@@ -427,7 +431,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     private void doAcquireInterruptibly(int arg)
         throws InterruptedException {
-        /** addWaiter创建一个独占式节点node,添加到CLH同步队列尾部.**/
+        /** addWaiter创建一个独占式节点node,添加到同步队列尾部.**/
         final Node node = addWaiter(Node.EXCLUSIVE);
         /** 执行是否发生异常 **/
         boolean failed = true;
@@ -451,17 +455,14 @@ public abstract class AbstractQueuedSynchronizer
                     throw new InterruptedException();
             }
         } finally {
+            /** 发生异常，将当前节点等待状态设置为取消**/
             if (failed)
                 cancelAcquire(node);
         }
     }
 
     /**
-     * Acquires in exclusive timed mode.
-     *
-     * @param arg the acquire argument
-     * @param nanosTimeout max wait time
-     * @return {@code true} if acquired
+     * 独占获取同步状态，响应中断,同时增加超时机制
      */
     private boolean doAcquireNanos(int arg, long nanosTimeout)
             throws InterruptedException {
@@ -494,12 +495,9 @@ public abstract class AbstractQueuedSynchronizer
         }
     }
 
-    /**
-     * Acquires in shared uninterruptible mode.
-     * @param arg the acquire argument
-     */
+
     private void doAcquireShared(int arg) {
-        /** 创建一个共享式节点node,添加到CLH同步队列尾部..**/
+        /** 创建一个共享式节点node,添加到同步队列尾部..**/
         final Node node = addWaiter(Node.SHARED);
         /** 执行是否发生异常 **/
         boolean failed = true;
@@ -515,31 +513,32 @@ public abstract class AbstractQueuedSynchronizer
                     int r = tryAcquireShared(arg);
                     if (r >= 0) {
                         /** 将当前节点设置为head,同时只要同步队列中存在等待的节点,
-                         * 且节点为共享节点则会调用doReleaseShared,唤醒head节点后置节点阻塞去竞争同步状态. **/
+                         * 且节点为共享节点则唤醒head节点后置节点阻塞去竞争同步状态. **/
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
                         /** 如果当前线程中断 **/
                         if (interrupted)
-                            /**  **/
+                            /** 中断当前线程 **/
                             selfInterrupt();
                         failed = false;
                         return;
                     }
                 }
+                /** 获取锁失败，在shouldParkAfterFailedAcquire中设置节点的等待状态，并线程阻塞（可响应线程被中断）,
+                 * 如果是中断响应设置interrupted = true;
+                 * 重新进入自旋**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
                     interrupted = true;
             }
         } finally {
+            /** 发生异常，将当前节点等待状态设置为取消**/
             if (failed)
                 cancelAcquire(node);
         }
     }
 
-    /**
-     * Acquires in shared interruptible mode.
-     * @param arg the acquire argument
-     */
+
     private void doAcquireSharedInterruptibly(int arg)
         throws InterruptedException {
         final Node node = addWaiter(Node.SHARED);
@@ -631,9 +630,8 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 独占式获取同步状态,如果当前线程获取同步状态成功则直接返回，
-     * 如果获取失败则线程阻塞，并插入同步队列进行.当调用release
-     * 释放同步状态时，会从head头部后第一个节点中线程从阻塞中释放
-     * 并在自旋中重新竞争同步状态，如果获取成功则出队
+     * 如果获取失败则线程阻塞，并插入同步队列进行.等待调用release
+     * 释放同步状态时，重新尝试获取同步状态。
      */
     public final void acquire(int arg) {
         /**
@@ -642,56 +640,47 @@ public abstract class AbstractQueuedSynchronizer
          *如果返回false则获取同步状态失败进入if语句
          */
         if (!tryAcquire(arg) &&
-            /** addWaiter创建一个独占式节点node,添加到CLH同步队列尾部.**/
-            /** acquireQueued自旋,CLH头部后置第一个节点线程尝试获取同步状态,成功则设置其为head节点.失败则阻塞 **/
-            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
-            /** 中断当前线程 **/
+                /** addWaiter创建一个独占式节点node,添加到同步队列尾部. */
+                /** acquireQueued自旋,同步队列头部后置第一个节点线程尝试获取同步状态,成功则设置其为head节点.失败则阻塞 */
+                acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
             selfInterrupt();
     }
 
     /**
-     * Acquires in exclusive mode, aborting if interrupted.
-     * Implemented by first checking interrupt status, then invoking
-     * at least once {@link #tryAcquire}, returning on
-     * success.  Otherwise the thread is queued, possibly repeatedly
-     * blocking and unblocking, invoking {@link #tryAcquire}
-     * until success or the thread is interrupted.  This method can be
-     * used to implement method {@link Lock#lockInterruptibly}.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquire} but is otherwise uninterpreted and
-     *        can represent anything you like.
-     * @throws InterruptedException if the current thread is interrupted
+     * 功能同acquire，可以响应线程中断
      */
     public final void acquireInterruptibly(int arg)
             throws InterruptedException {
+        /** 测试当前线程是否已经中断（如果已经中断会将中断标识重新设置为false）**/
         if (Thread.interrupted())
+            /** 抛出异常 **/
             throw new InterruptedException();
+        /**
+         *子类实现tryAcquire能否获取的独占式同步状态
+         *如果返回true则获取同步状态成功方法直接返回
+         *如果返回false则获取同步状态失败进入if语句
+         */
         if (!tryAcquire(arg))
+            /** 创建一个独占式节点node,添加到同步队列尾部.进入自旋,同步队列头部后置第一个节点线程尝试获取同步状态,成功则设置其为head节点.失败则阻塞
+             * 如果发生中断，抛出异常线程退出自旋 **/
             doAcquireInterruptibly(arg);
     }
 
     /**
-     * Attempts to acquire in exclusive mode, aborting if interrupted,
-     * and failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquire}, returning on success.  Otherwise, the thread is
-     * queued, possibly repeatedly blocking and unblocking, invoking
-     * {@link #tryAcquire} until success or the thread is interrupted
-     * or the timeout elapses.  This method can be used to implement
-     * method {@link Lock#tryLock(long, TimeUnit)}.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquire} but is otherwise uninterpreted and
-     *        can represent anything you like.
-     * @param nanosTimeout the maximum number of nanoseconds to wait
-     * @return {@code true} if acquired; {@code false} if timed out
-     * @throws InterruptedException if the current thread is interrupted
+     * 功能同acquireInterruptibly，增加等待超时
      */
     public final boolean tryAcquireNanos(int arg, long nanosTimeout)
             throws InterruptedException {
+        /** 测试当前线程是否已经中断（如果已经中断会将中断标识重新设置为false）**/
         if (Thread.interrupted())
+            /** 抛出异常 **/
             throw new InterruptedException();
+
+        /**
+         *子类实现tryAcquire能否获取的独占式同步状态
+         *如果返回true则获取同步状态成功方法直接返回
+         *如果返回false则获取同步状态失败进入if语句
+         */
         return tryAcquire(arg) ||
             doAcquireNanos(arg, nanosTimeout);
     }
@@ -700,7 +689,6 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * 释放独占式同步入口函数，
      * 参数arg传递给模板方法用来判断释放同步状态
-     *
      * 释放同步状态会释放Head节点后置节点中线程从阻塞状态中唤醒
      */
     public final boolean release(int arg) {
@@ -710,11 +698,11 @@ public abstract class AbstractQueuedSynchronizer
          *如果返回false则表示释放同步状态失败返回false
          */
         if (tryRelease(arg)) {
-            /** 判断CLH是否存在等待节点 **/
+            /** 判断同步队列是否存在等待节点 **/
             Node h = head;
             if (h != null && h.waitStatus != 0)
                 /**
-                 * 更新CLH同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
+                 * 更新同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
                  */
                 unparkSuccessor(h);
             return true;
@@ -723,75 +711,48 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared mode, ignoring interrupts.  Implemented by
-     * first invoking at least once {@link #tryAcquireShared},
-     * returning on success.  Otherwise the thread is queued, possibly
-     * repeatedly blocking and unblocking, invoking {@link
-     * #tryAcquireShared} until success.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquireShared} but is otherwise uninterpreted
-     *        and can represent anything you like.
+     * 共享式获取同步状态,如果当前线程获取同步状态成功则直接返回，
+     * 如果获取失败则线程阻塞，并插入同步队列进行.等待调用releaseShared
+     * 释放同步状态时，重新尝试获取同步状态。
      */
     public final void acquireShared(int arg) {
+        /**
+         *子类实现tryAcquireShared能否获取的共享式同步状态
+         *如果返回>=0则获取同步状态成功方法直接返回
+         *如果返回< 0则获取同步状态失败进入if语句
+         */
         if (tryAcquireShared(arg) < 0)
             doAcquireShared(arg);
     }
 
     /**
-     * Acquires in shared mode, aborting if interrupted.  Implemented
-     * by first checking interrupt status, then invoking at least once
-     * {@link #tryAcquireShared}, returning on success.  Otherwise the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted.
-     * @param arg the acquire argument.
-     * This value is conveyed to {@link #tryAcquireShared} but is
-     * otherwise uninterpreted and can represent anything
-     * you like.
-     * @throws InterruptedException if the current thread is interrupted
+     * 功能同acquireShared，可以响应线程中断
      */
     public final void acquireSharedInterruptibly(int arg)
             throws InterruptedException {
+        /** 测试当前线程是否已经中断（如果已经中断会将中断标识重新设置为false）**/
         if (Thread.interrupted())
+        /** 抛出异常 **/
             throw new InterruptedException();
         if (tryAcquireShared(arg) < 0)
             doAcquireSharedInterruptibly(arg);
     }
 
     /**
-     * Attempts to acquire in shared mode, aborting if interrupted, and
-     * failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquireShared}, returning on success.  Otherwise, the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted or the timeout elapses.
-     *
-     * @param arg the acquire argument.  This value is conveyed to
-     *        {@link #tryAcquireShared} but is otherwise uninterpreted
-     *        and can represent anything you like.
-     * @param nanosTimeout the maximum number of nanoseconds to wait
-     * @return {@code true} if acquired; {@code false} if timed out
-     * @throws InterruptedException if the current thread is interrupted
+     * 功能同acquireSharedInterruptibly，可以响应线程中断
      */
     public final boolean tryAcquireSharedNanos(int arg, long nanosTimeout)
             throws InterruptedException {
+        /** 测试当前线程是否已经中断（如果已经中断会将中断标识重新设置为false）**/
         if (Thread.interrupted())
+            /** 抛出异常 **/
             throw new InterruptedException();
         return tryAcquireShared(arg) >= 0 ||
             doAcquireSharedNanos(arg, nanosTimeout);
     }
 
-    /**
-     * Releases in shared mode.  Implemented by unblocking one or more
-     * threads if {@link #tryReleaseShared} returns true.
-     *
-     * @param arg the release argument.  This value is conveyed to
-     *        {@link #tryReleaseShared} but is otherwise uninterpreted
-     *        and can represent anything you like.
-     * @return the value returned from {@link #tryReleaseShared}
-     */
+
+
     public final boolean releaseShared(int arg) {
         if (tryReleaseShared(arg)) {
             doReleaseShared();
@@ -802,53 +763,22 @@ public abstract class AbstractQueuedSynchronizer
 
     // Queue inspection methods
 
-    /**
-     * Queries whether any threads are waiting to acquire. Note that
-     * because cancellations due to interrupts and timeouts may occur
-     * at any time, a {@code true} return does not guarantee that any
-     * other thread will ever acquire.
-     *
-     * <p>In this implementation, this operation returns in
-     * constant time.
-     *
-     * @return {@code true} if there may be other threads waiting to acquire
-     */
     public final boolean hasQueuedThreads() {
         return head != tail;
     }
 
-    /**
-     * Queries whether any threads have ever contended to acquire this
-     * synchronizer; that is if an acquire method has ever blocked.
-     *
-     * <p>In this implementation, this operation returns in
-     * constant time.
-     *
-     * @return {@code true} if there has ever been contention
-     */
+
     public final boolean hasContended() {
         return head != null;
     }
 
-    /**
-     * Returns the first (longest-waiting) thread in the queue, or
-     * {@code null} if no threads are currently queued.
-     *
-     * <p>In this implementation, this operation normally returns in
-     * constant time, but may iterate upon contention if other threads are
-     * concurrently modifying the queue.
-     *
-     * @return the first (longest-waiting) thread in the queue, or
-     *         {@code null} if no threads are currently queued
-     */
+
     public final Thread getFirstQueuedThread() {
         // handle only fast path, else relay
         return (head == tail) ? null : fullGetFirstQueuedThread();
     }
 
-    /**
-     * Version of getFirstQueuedThread called when fastpath fails
-     */
+
     private Thread fullGetFirstQueuedThread() {
         /*
          * The first node is normally head.next. Try to get its
@@ -885,16 +815,7 @@ public abstract class AbstractQueuedSynchronizer
         return firstThread;
     }
 
-    /**
-     * Returns true if the given thread is currently queued.
-     *
-     * <p>This implementation traverses the queue to determine
-     * presence of the given thread.
-     *
-     * @param thread the thread
-     * @return {@code true} if the given thread is on the queue
-     * @throws NullPointerException if the thread is null
-     */
+
     public final boolean isQueued(Thread thread) {
         if (thread == null)
             throw new NullPointerException();
@@ -904,15 +825,7 @@ public abstract class AbstractQueuedSynchronizer
         return false;
     }
 
-    /**
-     * Returns {@code true} if the apparent first queued thread, if one
-     * exists, is waiting in exclusive mode.  If this method returns
-     * {@code true}, and the current thread is attempting to acquire in
-     * shared mode (that is, this method is invoked from {@link
-     * #tryAcquireShared}) then it is guaranteed that the current thread
-     * is not the first queued thread.  Used only as a heuristic in
-     * ReentrantReadWriteLock.
-     */
+
     final boolean apparentlyFirstQueuedIsExclusive() {
         Node h, s;
         return (h = head) != null &&
@@ -921,49 +834,7 @@ public abstract class AbstractQueuedSynchronizer
             s.thread != null;
     }
 
-    /**
-     * Queries whether any threads have been waiting to acquire longer
-     * than the current thread.
-     *
-     * <p>An invocation of this method is equivalent to (but may be
-     * more efficient than):
-     *  <pre> {@code
-     * getFirstQueuedThread() != Thread.currentThread() &&
-     * hasQueuedThreads()}</pre>
-     *
-     * <p>Note that because cancellations due to interrupts and
-     * timeouts may occur at any time, a {@code true} return does not
-     * guarantee that some other thread will acquire before the current
-     * thread.  Likewise, it is possible for another thread to win a
-     * race to enqueue after this method has returned {@code false},
-     * due to the queue being empty.
-     *
-     * <p>This method is designed to be used by a fair synchronizer to
-     * avoid <a href="AbstractQueuedSynchronizer#barging">barging</a>.
-     * Such a synchronizer's {@link #tryAcquire} method should return
-     * {@code false}, and its {@link #tryAcquireShared} method should
-     * return a negative value, if this method returns {@code true}
-     * (unless this is a reentrant acquire).  For example, the {@code
-     * tryAcquire} method for a fair, reentrant, exclusive mode
-     * synchronizer might look like this:
-     *
-     *  <pre> {@code
-     * protected boolean tryAcquire(int arg) {
-     *   if (isHeldExclusively()) {
-     *     // A reentrant acquire; increment hold count
-     *     return true;
-     *   } else if (hasQueuedPredecessors()) {
-     *     return false;
-     *   } else {
-     *     // try to acquire normally
-     *   }
-     * }}</pre>
-     *
-     * @return {@code true} if there is a queued thread preceding the
-     *         current thread, and {@code false} if the current thread
-     *         is at the head of the queue or the queue is empty
-     * @since 1.7
-     */
+
     public final boolean hasQueuedPredecessors() {
         // The correctness of this depends on head being initialized
         // before tail and on head.next being accurate if the current
@@ -978,16 +849,6 @@ public abstract class AbstractQueuedSynchronizer
 
     // Instrumentation and monitoring methods
 
-    /**
-     * Returns an estimate of the number of threads waiting to
-     * acquire.  The value is only an estimate because the number of
-     * threads may change dynamically while this method traverses
-     * internal data structures.  This method is designed for use in
-     * monitoring system state, not for synchronization
-     * control.
-     *
-     * @return the estimated number of threads waiting to acquire
-     */
     public final int getQueueLength() {
         int n = 0;
         for (Node p = tail; p != null; p = p.prev) {
@@ -997,17 +858,7 @@ public abstract class AbstractQueuedSynchronizer
         return n;
     }
 
-    /**
-     * Returns a collection containing threads that may be waiting to
-     * acquire.  Because the actual set of threads may change
-     * dynamically while constructing this result, the returned
-     * collection is only a best-effort estimate.  The elements of the
-     * returned collection are in no particular order.  This method is
-     * designed to facilitate construction of subclasses that provide
-     * more extensive monitoring facilities.
-     *
-     * @return the collection of threads
-     */
+
     public final Collection<Thread> getQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -1018,14 +869,7 @@ public abstract class AbstractQueuedSynchronizer
         return list;
     }
 
-    /**
-     * Returns a collection containing threads that may be waiting to
-     * acquire in exclusive mode. This has the same properties
-     * as {@link #getQueuedThreads} except that it only returns
-     * those threads waiting due to an exclusive acquire.
-     *
-     * @return the collection of threads
-     */
+
     public final Collection<Thread> getExclusiveQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -1038,14 +882,7 @@ public abstract class AbstractQueuedSynchronizer
         return list;
     }
 
-    /**
-     * Returns a collection containing threads that may be waiting to
-     * acquire in shared mode. This has the same properties
-     * as {@link #getQueuedThreads} except that it only returns
-     * those threads waiting due to a shared acquire.
-     *
-     * @return the collection of threads
-     */
+
     public final Collection<Thread> getSharedQueuedThreads() {
         ArrayList<Thread> list = new ArrayList<Thread>();
         for (Node p = tail; p != null; p = p.prev) {
@@ -1058,15 +895,7 @@ public abstract class AbstractQueuedSynchronizer
         return list;
     }
 
-    /**
-     * Returns a string identifying this synchronizer, as well as its state.
-     * The state, in brackets, includes the String {@code "State ="}
-     * followed by the current value of {@link #getState}, and either
-     * {@code "nonempty"} or {@code "empty"} depending on whether the
-     * queue is empty.
-     *
-     * @return a string identifying this synchronizer, as well as its state
-     */
+
     public String toString() {
         int s = getState();
         String q  = hasQueuedThreads() ? "non" : "";
@@ -1075,14 +904,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
-    // Internal support methods for Conditions
 
-    /**
-     * Returns true if a node, always one that was initially placed on
-     * a condition queue, is now waiting to reacquire on sync queue.
-     * @param node the node
-     * @return true if is reacquiring
-     */
     final boolean isOnSyncQueue(Node node) {
         if (node.waitStatus == Node.CONDITION || node.prev == null)
             return false;
