@@ -155,21 +155,28 @@ public abstract class AbstractQueuedSynchronizer
     private volatile int state;
 
 
+    /**
+     * 获取同步状态
+     */
     protected final int getState() {
         return state;
     }
 
 
+    /**
+     * 设置同步状态
+     */
     protected final void setState(int newState) {
         state = newState;
     }
 
 
+    /**
+     *  CAS设置同步状态
+     */
     protected final boolean compareAndSetState(int expect, int update) {
         return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
     }
-
-
 
     static final long spinForTimeoutThreshold = 1000L;
 
@@ -197,6 +204,11 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 创建节点node
+     * 如果同步队列已初始化则将当前节点添加到同步队列尾部,
+     * 如果同步队列没有初始化则需要调用子函数enq，enq会创建一个CLH同步队列并将当前节点添加到CLH同步队列尾部.
+     */
     private Node addWaiter(Node mode) {
         /**  1. 将当前线程构建成Node **/
         Node node = new Node(Thread.currentThread(), mode);
@@ -219,6 +231,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 将传入节点设置未同步队列头部节点
+     * 头部节点内部不存在等待线程
+     */
     private void setHead(Node node) {
         head = node;
         node.thread = null;
@@ -226,13 +242,21 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 更新CLH同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
+     */
     private void unparkSuccessor(Node node) {
-
+        /**
+         * 将Head节点的等待状态设置为0
+         */
         int ws = node.waitStatus;
         if (ws < 0)
             compareAndSetWaitStatus(node, ws, 0);
 
-
+        /** 默认情况下释放的节点为head节点后置节点s. **/
+        /**
+         * 如果head节点后置节点等待状态为1(取消),从尾节点开始遍历寻找最接近head节点等待状态为-1的节点作为释放节点s
+         */
         Node s = node.next;
         if (s == null || s.waitStatus > 0) {
             s = null;
@@ -240,6 +264,7 @@ public abstract class AbstractQueuedSynchronizer
                 if (t.waitStatus <= 0)
                     s = t;
         }
+        /** 唤醒s节点中线程阻塞 **/
         if (s != null)
             LockSupport.unpark(s.thread);
     }
@@ -266,6 +291,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 将当前节点设置为head,同时只要CLH队列中存在等待的节点,且节点为共享节点则会调用doReleaseShared,唤醒head节点后置节点阻塞去竞争同步状态.
+     */
     private void setHeadAndPropagate(Node node, int propagate) {
         Node h = head; // Record old head for check below
         setHead(node);
@@ -314,29 +342,26 @@ public abstract class AbstractQueuedSynchronizer
     }
 
 
+    /**
+     * 获取同步状态自旋设置节点等待状态
+     * 返回 true 调用parkAndCheckInterrupt()阻塞当前线程
+     * 返回 false 则重新进入acquireQueued自旋
+     */
     private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
         int ws = pred.waitStatus;
+        /** 前置节点状态为-1 返回true 准备直塞当前节点线程  */
         if (ws == Node.SIGNAL)
-            /*
-             * This node has already set status asking a release
-             * to signal it, so it can safely park.
-             */
+
             return true;
+        /** 前置节点状态为 1，剔除出队列，在外层自悬循环    中从新开始查找  返回false */
         if (ws > 0) {
-            /*
-             * Predecessor was cancelled. Skip over predecessors and
-             * indicate retry.
-             */
             do {
                 node.prev = pred = pred.prev;
             } while (pred.waitStatus > 0);
             pred.next = node;
-        } else {
-            /*
-             * waitStatus must be 0 or PROPAGATE.  Indicate that we
-             * need a signal, but don't park yet.  Caller will need to
-             * retry to make sure it cannot acquire before parking.
-             */
+        }
+        /** 前置节点状态为 0，设置为 -1  在外层自悬循环    中从新开始查找  返回false */
+        else {
             compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
         }
         return false;
@@ -350,71 +375,77 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Convenience method to park and then check if interrupted
-     *
-     * @return {@code true} if interrupted
+     * 阻塞当前线程（可响应中断）
+     * 返回true 表示中断导致线程阻塞被唤醒
      */
     private final boolean parkAndCheckInterrupt() {
+        /** 阻塞当前线程（可响应中断）**/
         LockSupport.park(this);
+        /** 如果线程是中断从阻塞唤醒返回true **/
         return Thread.interrupted();
     }
 
-    /*
-     * Various flavors of acquire, varying in exclusive/shared and
-     * control modes.  Each is mostly the same, but annoyingly
-     * different.  Only a little bit of factoring is possible due to
-     * interactions of exception mechanics (including ensuring that we
-     * cancel if tryAcquire throws exception) and other control, at
-     * least not without hurting performance too much.
-     */
 
     /**
-     * Acquires in exclusive uninterruptible mode for thread already in
-     * queue. Used by condition wait methods as well as acquire.
-     *
-     * @param node the node
-     * @param arg the acquire argument
-     * @return {@code true} if interrupted while waiting
+     * 自旋,找到CLH头部后置第一个节点，尝试获取同步状态,成功则设置其为新head节点.失败则阻塞.
      */
     final boolean acquireQueued(final Node node, int arg) {
+        /** 执行是否发生异常 **/
         boolean failed = true;
         try {
+            /** 标识是否被中断 **/
             boolean interrupted = false;
+            /** 进入自旋 **/
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
+                 /** 如果当前节点的先驱节点是头结点并且成功获取同步状态，即可以获得独占式锁  **/
                 if (p == head && tryAcquire(arg)) {
+                     /** 并将当前节点设置为head节点  **/
                     setHead(node);
+                     /** 释放当前节前驱节点指针(这里前驱节点也相当于原始的head节点)等待GC回收  **/
                     p.next = null; // help GC
                     failed = false;
                     return interrupted;
                 }
+                 /** 2.2 获取锁失败，线程阻塞（可响应线程被中断）,  如果是中断响应设置interrupted = true;
+                  * 重新进入自旋**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
-                    parkAndCheckInterrupt())
+                        parkAndCheckInterrupt())
                     interrupted = true;
             }
         } finally {
+            /** 发生异常失败  **/
             if (failed)
+            /** 设置当前节点状态为消息  **/
                 cancelAcquire(node);
         }
     }
 
     /**
-     * Acquires in exclusive interruptible mode.
-     * @param arg the acquire argument
+     * 独占获取同步状态，响应中断
      */
     private void doAcquireInterruptibly(int arg)
         throws InterruptedException {
+        /** addWaiter创建一个独占式节点node,添加到CLH同步队列尾部.**/
         final Node node = addWaiter(Node.EXCLUSIVE);
+        /** 执行是否发生异常 **/
         boolean failed = true;
         try {
+            /** 进入自旋 **/
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
+                /** 如果当前节点的先驱节点是头结点并且成功获取同步状态 **/
                 if (p == head && tryAcquire(arg)) {
+                    /** 并将当前节点设置为head节点  **/
                     setHead(node);
                     p.next = null; // help GC
                     failed = false;
                     return;
                 }
+                /** 2.2 获取锁失败，线程阻塞（可响应线程被中断）,  如果是中断响应设置interrupted = true;
+                 * 抛出异常，中断导致退出自旋线程不在等待！！响应了中断**/
                 if (shouldParkAfterFailedAcquire(p, node) &&
                     parkAndCheckInterrupt())
                     throw new InterruptedException();
@@ -468,18 +499,28 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument
      */
     private void doAcquireShared(int arg) {
+        /** 创建一个共享式节点node,添加到CLH同步队列尾部..**/
         final Node node = addWaiter(Node.SHARED);
+        /** 执行是否发生异常 **/
         boolean failed = true;
         try {
+            /** 标识是否被中断 **/
             boolean interrupted = false;
+            /** 进入自旋 **/
             for (;;) {
+                /** 1. 获得当前节点的先驱节点  **/
                 final Node p = node.predecessor();
                 if (p == head) {
+                    /** 如果当前节点的先驱节点是头结点并且成功获取同步状态 **/
                     int r = tryAcquireShared(arg);
                     if (r >= 0) {
+                        /** 将当前节点设置为head,同时只要同步队列中存在等待的节点,
+                         * 且节点为共享节点则会调用doReleaseShared,唤醒head节点后置节点阻塞去竞争同步状态. **/
                         setHeadAndPropagate(node, r);
                         p.next = null; // help GC
+                        /** 如果当前线程中断 **/
                         if (interrupted)
+                            /**  **/
                             selfInterrupt();
                         failed = false;
                         return;
@@ -655,20 +696,26 @@ public abstract class AbstractQueuedSynchronizer
             doAcquireNanos(arg, nanosTimeout);
     }
 
+
     /**
-     * Releases in exclusive mode.  Implemented by unblocking one or
-     * more threads if {@link #tryRelease} returns true.
-     * This method can be used to implement method {@link Lock#unlock}.
+     * 释放独占式同步入口函数，
+     * 参数arg传递给模板方法用来判断释放同步状态
      *
-     * @param arg the release argument.  This value is conveyed to
-     *        {@link #tryRelease} but is otherwise uninterpreted and
-     *        can represent anything you like.
-     * @return the value returned from {@link #tryRelease}
+     * 释放同步状态会释放Head节点后置节点中线程从阻塞状态中唤醒
      */
     public final boolean release(int arg) {
+        /**
+         *子类实现能否释放的独占式同步状态
+         *如果返回true则表示释放同步状态准入条件成功进入if语句
+         *如果返回false则表示释放同步状态失败返回false
+         */
         if (tryRelease(arg)) {
+            /** 判断CLH是否存在等待节点 **/
             Node h = head;
             if (h != null && h.waitStatus != 0)
+                /**
+                 * 更新CLH同步队列Head节点的等待状态，将Head节点后置节点中线程从阻塞状态中唤醒
+                 */
                 unparkSuccessor(h);
             return true;
         }
