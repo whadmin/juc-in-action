@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf52b600-0e9d-413d-8b52-97a40853e60f" name="默认更改列表" comment="commit">
-      <change afterPath="$PROJECT_DIR$/src/main/java/sourcecode/ReentrantLock.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/interrupt/InterruptTest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/interrupt/InterruptTest.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/interrupt/TnterruptRunnable1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/interrupt/TnterruptRunnable1.class" afterDir="false" />
@@ -25,8 +24,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/sourcecode/ThreadLocal.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="151">
-              <caret line="489" column="20" selection-start-line="489" selection-start-column="20" selection-end-line="489" selection-end-column="20" />
+            <state relative-caret-position="6608">
+              <caret line="488" column="48" selection-start-line="488" selection-start-column="31" selection-end-line="488" selection-end-column="48" />
               <folding>
                 <element signature="e#668#669#0" expanded="true" />
                 <element signature="e#729#730#0" expanded="true" />
@@ -49,61 +48,39 @@
                 <element signature="e#11500#11501#0" expanded="true" />
                 <element signature="e#11615#11616#0" expanded="true" />
                 <element signature="e#11673#11674#0" expanded="true" />
+                <element signature="method#ThreadLocalMap#0;class#ThreadLocalMap#0;class#ThreadLocal#0" />
+                <element signature="method#ThreadLocalMap#1;class#ThreadLocalMap#0;class#ThreadLocal#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_131/src.zip!/java/lang/ref/Reference.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/ThreadLocalTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="264" column="15" lean-forward="true" selection-start-line="264" selection-start-column="15" selection-end-line="264" selection-end-column="15" />
+            <state relative-caret-position="32">
+              <caret line="24" column="53" selection-start-line="24" selection-start-column="53" selection-end-line="24" selection-end-column="53" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/WeakReferenceTest.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="320">
+              <caret line="20" column="13" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="13" />
               <folding>
-                <element signature="e#9683#9684#0" expanded="true" />
-                <element signature="e#9719#9720#0" expanded="true" />
+                <element signature="e#159#167#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_131/src.zip!/java/lang/ThreadLocal.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/Salad.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="326">
-              <caret line="379" column="48" selection-start-line="379" selection-start-column="48" selection-end-line="379" selection-end-column="48" />
-              <folding>
-                <element signature="e#4309#4310#0" expanded="true" />
-                <element signature="e#4336#4337#0" expanded="true" />
-                <element signature="e#7765#7766#0" expanded="true" />
-                <element signature="e#7802#7803#0" expanded="true" />
-                <element signature="e#8068#8069#0" expanded="true" />
-                <element signature="e#8137#8138#0" expanded="true" />
-                <element signature="e#11458#11459#0" expanded="true" />
-                <element signature="e#11505#11506#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_131/src.zip!/java/lang/ref/WeakReference.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="151">
-              <caret line="55" column="11" selection-start-line="55" selection-start-column="11" selection-end-line="55" selection-end-column="11" />
-              <folding>
-                <element signature="e#1456#1457#0" expanded="true" />
-                <element signature="e#1487#1488#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.8.0_131/src.zip!/java/util/Objects.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="160">
-              <caret line="200" column="24" selection-start-line="200" selection-start-column="24" selection-end-line="200" selection-end-column="24" />
+            <state relative-caret-position="64">
+              <caret line="4" selection-start-line="4" selection-end-line="4" />
             </state>
           </provider>
         </entry>
@@ -148,6 +125,9 @@
         <option value="$PROJECT_DIR$/src/main/java/sourcecode/ReentrantLock.java" />
         <option value="$PROJECT_DIR$/src/main/java/sourcecode/CountDownLatch.java" />
         <option value="$PROJECT_DIR$/src/main/java/sourcecode/Semaphore.java" />
+        <option value="$PROJECT_DIR$/src/main/java/threadLocal/ThreadLocalTest.java" />
+        <option value="$PROJECT_DIR$/src/main/java/threadLocal/Salad.java" />
+        <option value="$PROJECT_DIR$/src/main/java/threadLocal/WeakReferenceTest.java" />
         <option value="$PROJECT_DIR$/src/main/java/sourcecode/ThreadLocal.java" />
       </list>
     </option>
@@ -204,14 +184,6 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="atomic" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="juc-in-action" type="b2602c69:ProjectViewProjectNode" />
-              <item name="juc-in-action" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="com" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -237,6 +209,14 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="sourcecode" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="juc-in-action" type="b2602c69:ProjectViewProjectNode" />
+              <item name="juc-in-action" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="threadLocal" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="juc-in-action" type="b2602c69:ProjectViewProjectNode" />
@@ -332,7 +312,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1562597497019" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1562643549941" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -343,6 +323,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="threadLocal" />
       <recent name="sourcecode" />
       <recent name="atomic" />
     </key>
@@ -464,7 +445,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1562205866409</updated>
-      <workItem from="1562205870749" duration="70997000" />
+      <workItem from="1562205870749" duration="79972000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <created>1562212118438</created>
@@ -501,7 +482,14 @@
       <option name="project" value="LOCAL" />
       <updated>1562333588712</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="commit">
+      <created>1562602346422</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1562602346422</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -537,7 +525,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="70997000" />
+    <option name="totallyTimeSpent" value="79972000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
@@ -1042,7 +1030,7 @@
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_131/src.zip!/java/lang/ref/Reference.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
-          <caret line="264" column="15" lean-forward="true" selection-start-line="264" selection-start-column="15" selection-end-line="264" selection-end-column="15" />
+          <caret line="264" column="15" selection-start-line="264" selection-start-column="15" selection-end-line="264" selection-end-column="15" />
           <folding>
             <element signature="e#9683#9684#0" expanded="true" />
             <element signature="e#9719#9720#0" expanded="true" />
@@ -1061,10 +1049,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/Salad.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="64">
+          <caret line="4" selection-start-line="4" selection-end-line="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/ThreadLocalTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="32">
+          <caret line="24" column="53" selection-start-line="24" selection-start-column="53" selection-end-line="24" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/threadLocal/WeakReferenceTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="20" column="13" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="13" />
+          <folding>
+            <element signature="e#159#167#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/sourcecode/ThreadLocal.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="151">
-          <caret line="489" column="20" selection-start-line="489" selection-start-column="20" selection-end-line="489" selection-end-column="20" />
+        <state relative-caret-position="6608">
+          <caret line="488" column="48" selection-start-line="488" selection-start-column="31" selection-end-line="488" selection-end-column="48" />
           <folding>
             <element signature="e#668#669#0" expanded="true" />
             <element signature="e#729#730#0" expanded="true" />
@@ -1087,6 +1099,8 @@
             <element signature="e#11500#11501#0" expanded="true" />
             <element signature="e#11615#11616#0" expanded="true" />
             <element signature="e#11673#11674#0" expanded="true" />
+            <element signature="method#ThreadLocalMap#0;class#ThreadLocalMap#0;class#ThreadLocal#0" />
+            <element signature="method#ThreadLocalMap#1;class#ThreadLocalMap#0;class#ThreadLocal#0" />
           </folding>
         </state>
       </provider>
