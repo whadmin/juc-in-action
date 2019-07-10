@@ -92,7 +92,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         }
 
         /**
-         * 释放锁
+         * 释放同步状态
          */
         protected final boolean tryRelease(int releases) {
             /** 重新计算当前同步状态 **/
@@ -300,7 +300,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * 判断当前对象是否时公平锁
+     * 判断当前对象是否是公平锁
      */
     public final boolean isFair() {
         return sync instanceof FairSync;
@@ -321,7 +321,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     * 判断线程是否在同步队列中
+     * 判断是否有线程在同步队列等待锁
      */
     public final boolean hasQueuedThread(Thread thread) {
         return sync.isQueued(thread);
