@@ -342,7 +342,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     *
+     * 获取条件等待队列是否存在等待线程
      */
     public boolean hasWaiters(Condition condition) {
         if (condition == null)
@@ -353,7 +353,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     *
+     * 获取条件等待队列等待线程数量
      */
     public int getWaitQueueLength(Condition condition) {
         if (condition == null)
@@ -364,7 +364,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     }
 
     /**
-     *
+     * 获取条件等待队列等待线程集合
      */
     protected Collection<Thread> getWaitingThreads(Condition condition) {
         if (condition == null)
