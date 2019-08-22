@@ -146,14 +146,14 @@ public class LinkedList<E>
         f.item = null;
         /** 设置first的next为null (等待gc回收)**/
         f.next = null; // help GC
-        /** first指向next,原始head出队 **/
+        /** first指向next,原始fist出队完毕 **/
         first = next;
         /** 如果原链表只保存一个节点 **/
         if (next == null)
             /** last设置为null **/
             last = null;
         else
-            /** next的prev设置为null(next为新的fist节点) **/
+            /** next的prev设置为null(next为新的fist节点完毕) **/
             next.prev = null;
         /** 数量-1 **/
         size--;
@@ -176,48 +176,61 @@ public class LinkedList<E>
         l.item = null;
         /** 设置last的prev为null (等待gc回收)**/
         l.prev = null;
-        /** first指向next,原始head出队 **/
+        /** last指向prev,原始last出队完毕 **/
         last = prev;
+        /** 如果原链表只保存一个节点 **/
         if (prev == null)
+             /** first设置为null **/
             first = null;
         else
+            /** prev的next设置为null(prev为新的last节点完毕) **/
             prev.next = null;
+        /** 数量-1 **/
         size--;
+        /** 修改次数+1 **/
         modCount++;
         return element;
     }
 
     /**
-     * Unlinks non-null node x.
+     * 移除链表某个节点，并返回
      */
     E unlink(Node<E> x) {
-        // assert x != null;
+        /** 将last节点的数据暂存给变量 element，next，prev**/
         final E element = x.item;
         final Node<E> next = x.next;
         final Node<E> prev = x.prev;
 
+        /** 如果移除节点为fist节点**/
         if (prev == null) {
+            /** first指向next  **/
             first = next;
         } else {
             prev.next = next;
             x.prev = null;
         }
 
+        /** 如果移除节点为next节点**/
         if (next == null) {
+            /** last指向prev  **/
             last = prev;
         } else {
             next.prev = prev;
             x.next = null;
         }
 
+        /** 设置移除对象数据引用为null **/
         x.item = null;
+        /** 数量-1 **/
         size--;
+        /** 修改次数+1 **/
         modCount++;
         return element;
     }
 
     /**
-     * 获取头节点内数据
+     * Deque接口实现
+     * 获取头节点fist内数据，如果队列为空，抛出异常
      */
     public E getFirst() {
         final Node<E> f = first;
@@ -226,8 +239,20 @@ public class LinkedList<E>
         return f.item;
     }
 
+
     /**
-     * 获取尾节点内数据
+     * Deque接口实现
+     * 获取队列点fist内数据，如果队列为空，直接返回null
+     */
+    public E peekFirst() {
+        final Node<E> f = first;
+        return (f == null) ? null : f.item;
+    }
+
+
+    /**
+     * Deque接口实现
+     * 获取队尾节点内数据，如果队列为空，抛出异常
      */
     public E getLast() {
         final Node<E> l = last;
@@ -238,8 +263,18 @@ public class LinkedList<E>
 
     /**
      * Deque接口实现
-     * 删除队首元素
-     * 如果对首元素为null,抛出异常
+     * 获取队尾节点内数据，如果队列为空，直接返回null
+     */
+    public E peekLast() {
+        final Node<E> l = last;
+        return (l == null) ? null : l.item;
+    }
+
+
+
+    /**
+     * Deque接口实现
+     * 删除队首元素，如果队列为空,抛出异常
      */
     public E removeFirst() {
         final Node<E> f = first;
@@ -250,8 +285,7 @@ public class LinkedList<E>
 
     /**
      * Deque接口实现
-     * 删除队首元素
-     * 如果对首元素为null直接返回
+     * 删除队首元素，如果队列为空，直接返回null
      */
     public E pollFirst() {
         final Node<E> f = first;
@@ -260,7 +294,8 @@ public class LinkedList<E>
 
 
     /**
-     * 删除队尾元素
+     * Deque接口实现
+     * 删除队尾元素，如果队列为空，抛出异常
      */
     public E removeLast() {
         final Node<E> l = last;
@@ -269,60 +304,117 @@ public class LinkedList<E>
         return unlinkLast(l);
     }
 
+
     /**
-     * Inserts the specified element at the beginning of this list.
-     *
-     * @param e the element to add
+     * Deque接口实现
+     * 删除队尾元素，如果队列为空，直接返回null
+     */
+    public E pollLast() {
+        final Node<E> l = last;
+        return (l == null) ? null : unlinkLast(l);
+    }
+
+    /**
+     * Deque接口实现
+     * 在队首添加元素
      */
     public void addFirst(E e) {
         linkFirst(e);
     }
 
     /**
-     * Appends the specified element to the end of this list.
-     *
-     * <p>This method is equivalent to {@link #add}.
-     *
-     * @param e the element to add
+     * Deque接口实现
+     * 在队首添加元素,成功返回true
+     */
+    public boolean offerFirst(E e) {
+        addFirst(e);
+        return true;
+    }
+
+    /**
+     * Deque接口实现
+     * 在队尾添加元素
      */
     public void addLast(E e) {
         linkLast(e);
     }
 
+
     /**
-     * Returns {@code true} if this list contains the specified element.
-     * More formally, returns {@code true} if and only if this list contains
-     * at least one element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
-     *
-     * @param o element whose presence in this list is to be tested
-     * @return {@code true} if this list contains the specified element
+     * Deque接口实现
+     * 在队尾添加元素,成功返回true
+     */
+    public boolean offerLast(E e) {
+        addLast(e);
+        return true;
+    }
+
+    /**
+     * 判断链表是否包含此元素
      */
     public boolean contains(Object o) {
         return indexOf(o) != -1;
     }
 
     /**
-     * Returns the number of elements in this list.
-     *
-     * @return the number of elements in this list
+     * 返回链表中元素个数
      */
     public int size() {
         return size;
     }
 
     /**
-     * Appends the specified element to the end of this list.
-     *
-     * <p>This method is equivalent to {@link #addLast}.
-     *
-     * @param e element to be appended to this list
-     * @return {@code true} (as specified by {@link Collection#add})
+     * Queue接口实现
+     * 将元素插入队列尾部，成功返回true
      */
     public boolean add(E e) {
         linkLast(e);
         return true;
     }
+
+    /**
+     * Queue接口实现
+     * 将元素插入队列尾部
+     */
+    public boolean offer(E e) {
+        return add(e);
+    }
+
+    /**
+     * Queue接口实现
+     * 将队首的元素删除，如果队列为空,抛出异常
+     */
+    public E remove() {
+        return removeFirst();
+    }
+
+
+    /**
+     * Queue接口实现
+     * 将队首的元素删除，如果队列为空,返回null
+     */
+    public E poll() {
+        final Node<E> f = first;
+        return (f == null) ? null : unlinkFirst(f);
+    }
+
+    /**
+     * Queue接口实现
+     * 获取队首元素，但不移除，队列为空则抛出异常
+     */
+    public E element() {
+        return getFirst();
+    }
+
+
+    /**
+     * 获取队首元素，但不移除，队列为空则返回null
+     */
+    public E peek() {
+        final Node<E> f = first;
+        return (f == null) ? null : f.item;
+    }
+
 
     /**
      * Removes the first occurrence of the specified element from this list,
@@ -451,11 +543,8 @@ public class LinkedList<E>
     // Positional Access Operations
 
     /**
-     * Returns the element at the specified position in this list.
-     *
-     * @param index index of the element to return
-     * @return the element at the specified position in this list
-     * @throws IndexOutOfBoundsException {@inheritDoc}
+     * List接口实现
+     * 获取指定位置的元素
      */
     public E get(int index) {
         checkElementIndex(index);
@@ -463,13 +552,50 @@ public class LinkedList<E>
     }
 
     /**
-     * Replaces the element at the specified position in this list with the
-     * specified element.
-     *
-     * @param index index of the element to replace
-     * @param element element to be stored at the specified position
-     * @return the element previously at the specified position
-     * @throws IndexOutOfBoundsException {@inheritDoc}
+     * 返回一个元素在集合中首次出现的位置
+     */
+    public int indexOf(Object o) {
+        int index = 0;
+        if (o == null) {
+            for (Node<E> x = first; x != null; x = x.next) {
+                if (x.item == null)
+                    return index;
+                index++;
+            }
+        } else {
+            for (Node<E> x = first; x != null; x = x.next) {
+                if (o.equals(x.item))
+                    return index;
+                index++;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * 返回一个元素在集合中最后一次出现的位置
+     */
+    public int lastIndexOf(Object o) {
+        int index = size;
+        if (o == null) {
+            for (Node<E> x = last; x != null; x = x.prev) {
+                index--;
+                if (x.item == null)
+                    return index;
+            }
+        } else {
+            for (Node<E> x = last; x != null; x = x.prev) {
+                index--;
+                if (o.equals(x.item))
+                    return index;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * List接口实现
+     * 指定下标修改某个元素值
      */
     public E set(int index, E element) {
         checkElementIndex(index);
@@ -480,13 +606,8 @@ public class LinkedList<E>
     }
 
     /**
-     * Inserts the specified element at the specified position in this list.
-     * Shifts the element currently at that position (if any) and any
-     * subsequent elements to the right (adds one to their indices).
-     *
-     * @param index index at which the specified element is to be inserted
-     * @param element element to be inserted
-     * @throws IndexOutOfBoundsException {@inheritDoc}
+     * List接口实现
+     * 可以在指定下标位置添加单个元素到列表中
      */
     public void add(int index, E element) {
         checkPositionIndex(index);
@@ -498,18 +619,16 @@ public class LinkedList<E>
     }
 
     /**
-     * Removes the element at the specified position in this list.  Shifts any
-     * subsequent elements to the left (subtracts one from their indices).
-     * Returns the element that was removed from the list.
-     *
-     * @param index the index of the element to be removed
-     * @return the element previously at the specified position
-     * @throws IndexOutOfBoundsException {@inheritDoc}
+     * List接口实现
+     * 删除指定某个下标中的元素，并返回
      */
     public E remove(int index) {
         checkElementIndex(index);
+        /** 返回指定元素索引处的（非null）节点，移除 **/
         return unlink(node(index));
     }
+
+
 
     /**
      * Tells if the argument is the index of an existing element.
@@ -546,7 +665,7 @@ public class LinkedList<E>
     }
 
     /**
-     * Returns the (non-null) Node at the specified element index.
+     * 返回指定元素索引处的（非null）节点
      */
     Node<E> node(int index) {
         // assert isElementIndex(index);
@@ -566,185 +685,12 @@ public class LinkedList<E>
 
     // Search Operations
 
-    /**
-     * Returns the index of the first occurrence of the specified element
-     * in this list, or -1 if this list does not contain the element.
-     * More formally, returns the lowest index {@code i} such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
-     * or -1 if there is no such index.
-     *
-     * @param o element to search for
-     * @return the index of the first occurrence of the specified element in
-     *         this list, or -1 if this list does not contain the element
-     */
-    public int indexOf(Object o) {
-        int index = 0;
-        if (o == null) {
-            for (Node<E> x = first; x != null; x = x.next) {
-                if (x.item == null)
-                    return index;
-                index++;
-            }
-        } else {
-            for (Node<E> x = first; x != null; x = x.next) {
-                if (o.equals(x.item))
-                    return index;
-                index++;
-            }
-        }
-        return -1;
-    }
 
-    /**
-     * Returns the index of the last occurrence of the specified element
-     * in this list, or -1 if this list does not contain the element.
-     * More formally, returns the highest index {@code i} such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
-     * or -1 if there is no such index.
-     *
-     * @param o element to search for
-     * @return the index of the last occurrence of the specified element in
-     *         this list, or -1 if this list does not contain the element
-     */
-    public int lastIndexOf(Object o) {
-        int index = size;
-        if (o == null) {
-            for (Node<E> x = last; x != null; x = x.prev) {
-                index--;
-                if (x.item == null)
-                    return index;
-            }
-        } else {
-            for (Node<E> x = last; x != null; x = x.prev) {
-                index--;
-                if (o.equals(x.item))
-                    return index;
-            }
-        }
-        return -1;
-    }
 
     // Queue operations.
 
-    /**
-     * Retrieves, but does not remove, the head (first element) of this list.
-     *
-     * @return the head of this list, or {@code null} if this list is empty
-     * @since 1.5
-     */
-    public E peek() {
-        final Node<E> f = first;
-        return (f == null) ? null : f.item;
-    }
-
-    /**
-     * Retrieves, but does not remove, the head (first element) of this list.
-     *
-     * @return the head of this list
-     * @throws NoSuchElementException if this list is empty
-     * @since 1.5
-     */
-    public E element() {
-        return getFirst();
-    }
-
-    /**
-     * Retrieves and removes the head (first element) of this list.
-     *
-     * @return the head of this list, or {@code null} if this list is empty
-     * @since 1.5
-     */
-    public E poll() {
-        final Node<E> f = first;
-        return (f == null) ? null : unlinkFirst(f);
-    }
-
-    /**
-     * Retrieves and removes the head (first element) of this list.
-     *
-     * @return the head of this list
-     * @throws NoSuchElementException if this list is empty
-     * @since 1.5
-     */
-    public E remove() {
-        return removeFirst();
-    }
-
-    /**
-     * Adds the specified element as the tail (last element) of this list.
-     *
-     * @param e the element to add
-     * @return {@code true} (as specified by {@link Queue#offer})
-     * @since 1.5
-     */
-    public boolean offer(E e) {
-        return add(e);
-    }
-
-    // Deque operations
-    /**
-     * Inserts the specified element at the front of this list.
-     *
-     * @param e the element to insert
-     * @return {@code true} (as specified by {@link Deque#offerFirst})
-     * @since 1.6
-     */
-    public boolean offerFirst(E e) {
-        addFirst(e);
-        return true;
-    }
-
-    /**
-     * Inserts the specified element at the end of this list.
-     *
-     * @param e the element to insert
-     * @return {@code true} (as specified by {@link Deque#offerLast})
-     * @since 1.6
-     */
-    public boolean offerLast(E e) {
-        addLast(e);
-        return true;
-    }
-
-    /**
-     * Retrieves, but does not remove, the first element of this list,
-     * or returns {@code null} if this list is empty.
-     *
-     * @return the first element of this list, or {@code null}
-     *         if this list is empty
-     * @since 1.6
-     */
-    public E peekFirst() {
-        final Node<E> f = first;
-        return (f == null) ? null : f.item;
-     }
-
-    /**
-     * Retrieves, but does not remove, the last element of this list,
-     * or returns {@code null} if this list is empty.
-     *
-     * @return the last element of this list, or {@code null}
-     *         if this list is empty
-     * @since 1.6
-     */
-    public E peekLast() {
-        final Node<E> l = last;
-        return (l == null) ? null : l.item;
-    }
 
 
-    /**
-     * Retrieves and removes the last element of this list,
-     * or returns {@code null} if this list is empty.
-     *
-     * @return the last element of this list, or {@code null} if
-     *     this list is empty
-     * @since 1.6
-     */
-    public E pollLast() {
-        final Node<E> l = last;
-        return (l == null) ? null : unlinkLast(l);
-    }
 
     /**
      * Pushes an element onto the stack represented by this list.  In other

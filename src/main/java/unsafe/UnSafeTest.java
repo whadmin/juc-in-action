@@ -7,6 +7,9 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * https://blog.csdn.net/u010398771/article/details/85319991
+ */
 public class UnSafeTest {
 
     static Unsafe unsafe = null;
@@ -22,6 +25,25 @@ public class UnSafeTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testMemory() throws Exception {
+        //分配一个8byte的内存
+        long address = unsafe.allocateMemory(8L);
+        //初始化内存填充1
+        unsafe.setMemory(address, 8L, (byte) 1);
+        //测试输出
+        System.out.println("add byte to memory:" + unsafe.getByte(address));
+        //设置0-3 4个byte为0x7fffffff
+        unsafe.putInt(address, 1);
+        //设置4-7 4个byte为0x80000000
+        unsafe.putInt(address + 4, 2);
+         //int占用4byte
+        System.out.println("add byte to memory:" + unsafe.getInt(address));
+        System.out.println("add byte to memory:" + unsafe.getInt(address + 4));
+    }
+
+
 
     @Test
     public void createTestA() throws Exception {

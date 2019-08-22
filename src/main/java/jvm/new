@@ -1,0 +1,118 @@
+Classfile /C:/work/project/juc-in-action/target/classes/jvm/NewObject.class
+  Last modified 2019-8-2; size 596 bytes
+  MD5 checksum a785ddafedc1b2f4a7d4c3e760a9d0b5
+  Compiled from "NewObject.java"
+public class jvm.NewObject
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #6.#23         // java/lang/Object."<init>":()V
+   #2 = Fieldref           #4.#24         // jvm/NewObject.field2:I
+   #3 = Fieldref           #4.#25         // jvm/NewObject.field1:I
+   #4 = Class              #26            // jvm/NewObject
+   #5 = Methodref          #4.#23         // jvm/NewObject."<init>":()V
+   #6 = Class              #27            // java/lang/Object
+   #7 = Utf8               field1
+   #8 = Utf8               I
+   #9 = Utf8               field2
+  #10 = Utf8               <init>
+  #11 = Utf8               ()V
+  #12 = Utf8               Code
+  #13 = Utf8               LineNumberTable
+  #14 = Utf8               LocalVariableTable
+  #15 = Utf8               this
+  #16 = Utf8               Ljvm/NewObject;
+  #17 = Utf8               NewObject
+  #18 = Utf8               getInstance
+  #19 = Utf8               ()Ljvm/NewObject;
+  #20 = Utf8               <clinit>
+  #21 = Utf8               SourceFile
+  #22 = Utf8               NewObject.java
+  #23 = NameAndType        #10:#11        // "<init>":()V
+  #24 = NameAndType        #9:#8          // field2:I
+  #25 = NameAndType        #7:#8          // field1:I
+  #26 = Utf8               jvm/NewObject
+  #27 = Utf8               java/lang/Object
+{
+  public static int field1;
+    descriptor: I
+    flags: ACC_PUBLIC, ACC_STATIC
+
+  public int field2;
+    descriptor: I
+    flags: ACC_PUBLIC
+
+  public jvm.NewObject();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: iconst_2
+         6: putfield      #2                  // Field field2:I
+         9: aload_0
+        10: bipush        22
+        12: putfield      #2                  // Field field2:I
+        15: return
+      LineNumberTable:
+        line 5: 0
+        line 13: 4
+        line 16: 9
+        line 17: 15
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      16     0  this   Ljvm/NewObject;
+
+  public void NewObject();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=3, locals=1, args_size=1
+         0: aload_0
+         1: getstatic     #3                  // Field field1:I
+         4: aload_0
+         5: getfield      #2                  // Field field2:I
+         8: iadd
+         9: putfield      #2                  // Field field2:I
+        12: return
+      LineNumberTable:
+        line 20: 0
+        line 21: 12
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      13     0  this   Ljvm/NewObject;
+
+  public jvm.NewObject getInstance();
+    descriptor: ()Ljvm/NewObject;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: new           #4                  // class jvm/NewObject
+         3: dup
+         4: invokespecial #5                  // Method "<init>":()V
+         7: areturn
+      LineNumberTable:
+        line 24: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       8     0  this   Ljvm/NewObject;
+
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=1, locals=0, args_size=0
+         0: iconst_1
+         1: putstatic     #3                  // Field field1:I
+         4: bipush        11
+         6: putstatic     #3                  // Field field1:I
+         9: return
+      LineNumberTable:
+        line 7: 0
+        line 10: 4
+        line 11: 9
+}
+SourceFile: "NewObject.java"
